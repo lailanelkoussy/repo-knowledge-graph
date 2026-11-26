@@ -1,0 +1,141 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repo-knowledge-graph"
+dynamic = ["version"]
+description = "Knowledge graph of a code repository (files, chunks, entities, imports, git history, Java / Spring Boot framework knowledge) served over MCP."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+    { name = "Laila Elkoussy" },
+    { name = "Julien Perez" },
+]
+keywords = ["knowledge-graph", "mcp", "model-context-protocol", "code-analysis", "llm-agents", "spring-boot", "static-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Security",
+]
+dependencies = [
+    "networkx>=3.2",
+    "langchain-text-splitters>=0.3",
+    "openai>=1.40",
+    "httpx>=0.27",
+    "tenacity>=8.2",
+    "python-dotenv>=1.0",
+    "tqdm>=4.66",
+    "numpy>=1.26",
+    "lancedb>=0.25",
+    "fastmcp>=2.13",
+    "pydantic>=2.7",
+    "pathspec>=0.12",
+    "pyyaml>=6.0",
+    # entity extraction
+    "javalang>=0.13",  # legacy Java parser (JAVA_PARSER=javalang), to be removed
+    "esprima>=4.0",
+    "beautifulsoup4>=4.12",
+    "tree-sitter>=0.25",
+    "tree-sitter-java>=0.23",
+    "tree-sitter-rust>=0.24",
+    "tree-sitter-typescript>=0.23",
+]
+
+[project.optional-dependencies]
+st = ["sentence-transformers>=3.0", "torch>=2.2"]
+cpp = ["libclang>=18"]
+weaviate = ["weaviate-client>=4.10"]
+observability = ["langfuse>=3.0"]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "pytest-timeout>=2.3", "ruff>=0.6", "mypy>=1.10"]
+all = ["repo-knowledge-graph[st,cpp,weaviate,observability]"]
+
+[project.urls]
+Homepage = "https://github.com/lailanelkoussy/repo-knowledge-graph"
+Repository = "https://github.com/lailanelkoussy/repo-knowledge-graph"
+Issues = "https://github.com/lailanelkoussy/repo-knowledge-graph/issues"
+Changelog = "https://github.com/lailanelkoussy/repo-knowledge-graph/blob/main/CHANGELOG.md"
+
+[project.scripts]
+repo-kg = "repo_knowledge_graph.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "repo_knowledge_graph.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["repo_knowledge_graph*"]
+
+[tool.setuptools.package-data]
+repo_knowledge_graph = ["*.yaml"]  # security_catalog.yaml
+
+# ---------------------------------------------------------------- tests
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+timeout = 300
+markers = [
+    "real_models: downloads and runs real embedding models (set KG_REAL_MODELS=1 to run)",
+    "weaviate: needs a running Weaviate server (set WEAVIATE_HOST to run)",
+    "llm: needs an OpenAI-compatible LLM endpoint (set OPENAI_BASE_URL to run)",
+    "clang: needs libclang (C/C++ extraction)",
+    "slow: slow tests",
+    "network: needs network access (set KG_NETWORK_TESTS=1 to run)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:javalang.*",
+    "ignore::DeprecationWarning:esprima.*",
+]
+
+# ---------------------------------------------------------------- lint / types
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["tests/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",   # long lines are allowed in docstrings / f-strings
+    "UP006", "UP007", "UP035", "UP045",  # keep typing.List / Optional for readability
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B", "F401", "F841", "E402"]
+"repo_knowledge_graph/entity_extractor.py" = ["B", "F841", "E741"]
+"repo_knowledge_graph/entity_chunk_mapper.py" = ["B"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+follow_imports = "silent"
+# Progressive typing: new modules are checked, legacy extractors are not (yet)
+files = [
+    "repo_knowledge_graph/settings.py",
+    "repo_knowledge_graph/languages.py",
+    "repo_knowledge_graph/entity_registry.py",
+    "repo_knowledge_graph/serialization.py",
+    "repo_knowledge_graph/git_history.py",
+    "repo_knowledge_graph/observability.py",
+    "repo_knowledge_graph/java_extractor.py",
+    "repo_knowledge_graph/call_resolution.py",
+    "repo_knowledge_graph/secrets_masking.py",
+    "repo_knowledge_graph/content_safety.py",
+    "repo_knowledge_graph/security_catalog.py",
+    "repo_knowledge_graph/findings.py",
+    "repo_knowledge_graph/vulnerability_lookup.py",
+    "repo_knowledge_graph/framework_queries.py",
+    "repo_knowledge_graph/framework_tools.py",
+    "repo_knowledge_graph/enrichers",
+]

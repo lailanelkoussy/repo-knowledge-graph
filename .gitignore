@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Runtime data
+.env
+logs/
+data/
+models/
+local_code_index_db/
+*.kg.json
+knowledge_graph*.json

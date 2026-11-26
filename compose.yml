@@ -1,0 +1,93 @@
+# Single compose file; optional services are grouped in profiles.
+#
+#   docker compose up mcp-server                          # MCP server over HTTP on :4000 (LanceDB, no other service)
+#   docker compose --profile weaviate up                  # + Weaviate (set INDEX_BACKEND=weaviate in .env)
+#   docker compose --profile build run --rm graph-builder # build a graph JSON into ./data
+#   docker compose --profile tests run --rm tests         # run the test-suite in the image
+#
+# The client demos in examples/ connect to http://localhost:4000/mcp (MCP_SERVER_URL).
+#
+# Configuration: copy .env.example to .env (REPO_URL / REPO_PATH / GRAPH_FILE, INDEX_TYPE, ...).
+# A local repository is mounted read-only from REPO_HOST_PATH (default: this directory).
+
+x-app: &app
+  build:
+    context: .
+    args:
+      EXTRAS: ${EXTRAS:-st,cpp,weaviate,observability}
+  image: repo-knowledge-graph:latest
+  env_file:
+    - path: .env
+      required: false
+  volumes:
+    - ${REPO_HOST_PATH:-.}:/repo:ro
+    - ./data:/data
+
+services:
+  mcp-server:
+    <<: *app
+    container_name: mcp-server
+    environment:
+      PORT: ${PORT:-4000}
+      TRANSPORT: http
+      REPO_PATH: ${REPO_PATH:-/repo}
+      REPO_URL: ${REPO_URL:-}
+      GRAPH_FILE: ${GRAPH_FILE:-}
+      INDEX_TYPE: ${INDEX_TYPE:-keyword-only}
+      INDEX_BACKEND: ${INDEX_BACKEND:-lancedb}
+      WEAVIATE_HOST: weaviate
+    command: ["serve"]
+    ports:
+      - "${PORT:-4000}:${PORT:-4000}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen(f\"http://localhost:{os.environ.get('PORT', '4000')}/health\")"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+
+  graph-builder:
+    <<: *app
+    profiles: ["build"]
+    environment:
+      REPO_PATH: ${REPO_PATH:-/repo}
+      REPO_URL: ${REPO_URL:-}
+    command: ["build", "--output", "/data/graph.json", "--progress"]
+
+  tests:
+    <<: *app
+    profiles: ["tests"]
+    build:
+      context: .
+      args:
+        EXTRAS: st,cpp,weaviate,observability,dev
+    entrypoint: ["python", "-m", "pytest"]
+    command: ["tests", "-q"]
+    volumes:
+      - ./data:/data
+
+  weaviate:
+    profiles: ["weaviate"]
+    image: cr.weaviate.io/semitechnologies/weaviate:1.36.24
+    container_name: weaviate
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      QUERY_DEFAULTS_LIMIT: "25"
+      DEFAULT_VECTORIZER_MODULE: none
+      ENABLE_MODULES: ""
+      CLUSTER_HOSTNAME: node1
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  weaviate-data:

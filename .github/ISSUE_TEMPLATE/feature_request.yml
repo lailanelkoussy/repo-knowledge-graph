@@ -1,0 +1,16 @@
+name: Feature request
+description: A new language, framework, MCP tool or analysis
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What would you like to do
+      description: The question an agent (or you) cannot answer today, or the language / framework to support.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: How it could work (optional).

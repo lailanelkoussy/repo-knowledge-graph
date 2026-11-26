@@ -1,0 +1,24 @@
+type Query {
+    """Returns one book."""
+    book(id: ID!): Book
+    books(
+        first: Int,
+        after: String
+    ): [Book]
+}
+
+type Mutation {
+    # Adds a book to the catalog
+    addBook(title: String!, authorId: ID!): Book
+    removeBook(id: ID!): Boolean
+}
+
+type Book {
+    id: ID!
+    title: String
+    author: Author
+}
+
+type Author {
+    name: String
+}

@@ -1,0 +1,372 @@
+# Security catalog: sinks (dangerous APIs), sources (untrusted input) and sanitizers, for Java.
+#
+# Matching is done on the *simple* name of the receiver type (`JdbcTemplate`, `Runtime`) and on the member
+# name; `<init>` is a constructor. `arg` is the index of the argument that must not be attacker-controlled
+# ("any" = every argument). Extend this file to add APIs: no code change is needed.
+#
+# Sink fields:
+#   id, category, cwe, severity (high | medium | low), receivers, members, arg
+#   always: true            -> the call is risky whatever its arguments (classified dangerous_api)
+#   dangerous_values: regex -> a constant argument matching it is a weak value (weak crypto, MD5...)
+#   safe_values: regex      -> a constant argument matching it is fine (overrides dangerous_values)
+#   mitigated_by            -> calls in the same method that harden the API (XXE features...)
+#   context: regex          -> only when the method or class name matches (Random for tokens...)
+
+sinks:
+  # ---------------------------------------------------------------- injection
+  - id: sql.jdbc_statement
+    category: sql_injection
+    cwe: 89
+    severity: high
+    receivers: [Statement, PreparedStatement, CallableStatement]
+    members: [execute, executeQuery, executeUpdate, executeLargeUpdate, addBatch]
+    arg: 0
+  - id: sql.jdbc_prepare
+    category: sql_injection
+    cwe: 89
+    severity: high
+    receivers: [Connection]
+    members: [prepareStatement, prepareCall, nativeSQL]
+    arg: 0
+  - id: sql.spring_jdbc
+    category: sql_injection
+    cwe: 89
+    severity: high
+    receivers: [JdbcTemplate, NamedParameterJdbcTemplate, JdbcOperations, NamedParameterJdbcOperations]
+    members: [query, queryForObject, queryForList, queryForMap, queryForRowSet, queryForStream, update,
+              execute, batchUpdate]
+    arg: 0
+  - id: sql.spring_jdbc_client
+    category: sql_injection
+    cwe: 89
+    severity: high
+    receivers: [JdbcClient, DatabaseClient]
+    members: [sql]
+    arg: 0
+  - id: sql.jpa
+    category: sql_injection
+    cwe: 89
+    severity: high
+    receivers: [EntityManager, Session, StatelessSession]
+    members: [createQuery, createNativeQuery, createSQLQuery, createNativeMutationQuery, createMutationQuery]
+    arg: 0
+  - id: command.runtime_exec
+    category: command_injection
+    cwe: 78
+    severity: high
+    receivers: [Runtime]
+    members: [exec]
+    arg: any
+  - id: command.process_builder
+    category: command_injection
+    cwe: 78
+    severity: high
+    receivers: [ProcessBuilder]
+    members: ['<init>', command]
+    arg: any
+  - id: expression.spel
+    category: expression_injection
+    cwe: 917
+    severity: high
+    receivers: [SpelExpressionParser, ExpressionParser, TemplateAwareExpressionParser]
+    members: [parseExpression, parseRaw]
+    arg: 0
+  - id: expression.script_engine
+    category: code_injection
+    cwe: 94
+    severity: high
+    receivers: [ScriptEngine, GroovyShell, ELProcessor, Interpreter]
+    members: [eval, evaluate, parse, run]
+    arg: 0
+  - id: expression.ognl_mvel
+    category: expression_injection
+    cwe: 917
+    severity: high
+    receivers: [Ognl, MVEL, OgnlUtil]
+    members: [getValue, setValue, parseExpression, eval, compileExpression]
+    arg: 0
+  - id: ldap.search
+    category: ldap_injection
+    cwe: 90
+    severity: high
+    receivers: [DirContext, InitialDirContext, LdapContext, InitialLdapContext, LdapTemplate, LdapOperations]
+    members: [search, searchForObject]
+    arg: 1
+  - id: xpath.evaluate
+    category: xpath_injection
+    cwe: 643
+    severity: medium
+    receivers: [XPath]
+    members: [evaluate, compile, evaluateExpression]
+    arg: 0
+  - id: log.injection
+    category: log_injection
+    cwe: 117
+    severity: low
+    receivers: [Logger, Log]
+    members: [trace, debug, info, warn, error, fatal, log]
+    arg: any
+  - id: http.header_injection
+    category: header_injection
+    cwe: 113
+    severity: medium
+    receivers: [HttpServletResponse, ServerHttpResponse, HttpHeaders]
+    members: [setHeader, addHeader, add, set]
+    arg: 1
+  - id: http.response_writer
+    category: xss
+    cwe: 79
+    severity: medium
+    receivers: [PrintWriter, ServletOutputStream]
+    members: [write, print, println, append, format, printf]
+    arg: 0
+  # ---------------------------------------------------------------- files and network
+  - id: path.file
+    category: path_traversal
+    cwe: 22
+    severity: high
+    receivers: [File, FileInputStream, FileOutputStream, FileReader, FileWriter, RandomAccessFile, ZipFile]
+    members: ['<init>']
+    arg: any
+  - id: path.nio
+    category: path_traversal
+    cwe: 22
+    severity: high
+    receivers: [Paths, Path]
+    members: [get, of, resolve, resolveSibling]
+    arg: any
+  - id: path.files
+    category: path_traversal
+    cwe: 22
+    severity: high
+    receivers: [Files]
+    members: [newInputStream, newOutputStream, newBufferedReader, newBufferedWriter, readAllBytes, readAllLines,
+              readString, lines, write, writeString, copy, move, delete, deleteIfExists, createFile,
+              createDirectories, list, walk]
+    arg: 0
+  - id: path.multipart_transfer
+    category: path_traversal
+    cwe: 22
+    severity: high
+    receivers: [MultipartFile, FilePart]
+    members: [transferTo]
+    arg: 0
+  - id: path.resource_loader
+    category: path_traversal
+    cwe: 22
+    severity: medium
+    receivers: [ResourceLoader, ApplicationContext, ClassPathResource, FileSystemResource, UrlResource]
+    members: [getResource, '<init>']
+    arg: 0
+  - id: ssrf.rest_template
+    category: ssrf
+    cwe: 918
+    severity: high
+    receivers: [RestTemplate, RestOperations, TestRestTemplate]
+    members: [getForObject, getForEntity, postForObject, postForEntity, postForLocation, put, delete, patchForObject,
+              exchange, execute, headForHeaders, optionsForAllow]
+    arg: 0
+  - id: ssrf.web_client
+    category: ssrf
+    cwe: 918
+    severity: high
+    receivers: [RequestHeadersUriSpec, RequestBodyUriSpec, UriSpec, Builder]
+    members: [uri]
+    arg: 0
+  - id: ssrf.url
+    category: ssrf
+    cwe: 918
+    severity: high
+    receivers: [URL, Socket, HttpGet, HttpPost, HttpPut, HttpDelete]
+    members: ['<init>']
+    arg: 0
+  - id: ssrf.uri_create
+    category: ssrf
+    cwe: 918
+    severity: medium
+    receivers: [URI, HttpRequest]
+    members: [create, newBuilder]
+    arg: 0
+  - id: redirect.send_redirect
+    category: open_redirect
+    cwe: 601
+    severity: medium
+    receivers: [HttpServletResponse]
+    members: [sendRedirect]
+    arg: 0
+  - id: redirect.view
+    category: open_redirect
+    cwe: 601
+    severity: medium
+    receivers: [RedirectView, ModelAndView]
+    members: ['<init>', setUrl, setViewName]
+    arg: 0
+  # ---------------------------------------------------------------- parsers and deserialization
+  - id: xxe.factories
+    category: xxe
+    cwe: 611
+    severity: high
+    receivers: [DocumentBuilderFactory, SAXParserFactory, XMLInputFactory, TransformerFactory, SchemaFactory,
+                SAXReader, SAXBuilder, XMLReaderFactory]
+    members: [newInstance, newFactory, newDefaultInstance, '<init>', createXMLReader]
+    arg: none
+    always: true
+    mitigated_by:
+      - member: setFeature
+        pattern: 'disallow-doctype-decl|FEATURE_SECURE_PROCESSING|external-general-entities|load-external-dtd'
+      - member: setProperty
+        pattern: 'ACCESS_EXTERNAL_DTD|ACCESS_EXTERNAL_SCHEMA|SUPPORT_DTD|IS_SUPPORTING_EXTERNAL_ENTITIES'
+      - member: setAttribute
+        pattern: 'ACCESS_EXTERNAL_DTD|ACCESS_EXTERNAL_STYLESHEET'
+      - member: setExpandEntityReferences
+        pattern: 'false'
+  - id: deserialization.java
+    category: deserialization
+    cwe: 502
+    severity: high
+    receivers: [ObjectInputStream, XMLDecoder]
+    members: [readObject, readUnshared]
+    arg: none
+    always: true
+  - id: deserialization.jackson_default_typing
+    category: deserialization
+    cwe: 502
+    severity: high
+    receivers: [ObjectMapper, JsonMapper]
+    members: [enableDefaultTyping, activateDefaultTyping, enableDefaultTypingAsProperty]
+    arg: none
+    always: true
+  - id: deserialization.libraries
+    category: deserialization
+    cwe: 502
+    severity: high
+    receivers: [XStream, Yaml, Kryo, Hessian2Input, SerializationUtils]
+    members: [fromXML, load, loadAll, loadAs, readObject, readClassAndObject, deserialize]
+    arg: 0
+  # ---------------------------------------------------------------- cryptography and randomness
+  - id: crypto.cipher
+    category: weak_crypto
+    cwe: 327
+    severity: medium
+    receivers: [Cipher]
+    members: [getInstance]
+    arg: 0
+    # weak in any mode: DES family, RC2 / RC4, Blowfish; AES only in ECB (the default when no mode is given)
+    dangerous_values: '(?i)^((DES|DESede|TripleDES|3DES|RC2|RC4|ARCFOUR|Blowfish)(/.*)?|AES|AES/ECB/.*|.*/ECB/.*|RSA/NONE/NoPadding|RSA)$'
+  - id: crypto.digest
+    category: weak_hash
+    cwe: 328
+    severity: medium
+    receivers: [MessageDigest, DigestUtils]
+    members: [getInstance, md5, md5Hex, sha1, sha1Hex, md2, md2Hex]
+    arg: 0
+    dangerous_values: '(?i)^(MD2|MD4|MD5|SHA|SHA-?1)$'
+  - id: crypto.digest_utils_weak
+    category: weak_hash
+    cwe: 328
+    severity: medium
+    receivers: [DigestUtils]
+    members: [md5, md5Hex, md5DigestAsHex, sha1, sha1Hex, md2, md2Hex]
+    arg: none
+    always: true
+  - id: crypto.hardcoded_key
+    category: hardcoded_key
+    cwe: 321
+    severity: high
+    receivers: [SecretKeySpec, IvParameterSpec, PBEKeySpec]
+    members: ['<init>']
+    arg: 0
+    dangerous_values: '.*'
+  - id: random.insecure
+    category: insecure_randomness
+    cwe: 330
+    severity: medium
+    receivers: [Random]
+    members: ['<init>']
+    arg: none
+    always: true
+    context: '(?i)(token|password|passwd|otp|secret|nonce|salt|session|apikey|api_key|reset|verification|csrf|key)'
+    # methods whose name says the value is not a secret (shuffling, sampling, retry delays)
+    context_exclude: '(?i)^(shuffle|sample|pick|choose|jitter|backoff|retry|delay|sleep|simulate|random(Index|Color|Element|Item|Delay)?)'
+  - id: random.math
+    category: insecure_randomness
+    cwe: 330
+    severity: medium
+    receivers: [Math, RandomStringUtils, RandomUtils]
+    members: [random, random, randomAlphanumeric, randomAlphabetic, randomNumeric, randomAscii, nextInt]
+    arg: none
+    always: true
+    context: '(?i)(token|password|passwd|otp|secret|nonce|salt|session|apikey|api_key|reset|verification|csrf|key)'
+    # methods whose name says the value is not a secret (shuffling, sampling, retry delays)
+    context_exclude: '(?i)^(shuffle|sample|pick|choose|jitter|backoff|retry|delay|sleep|simulate|random(Index|Color|Element|Item|Delay)?)'
+
+sources:
+  # Parameters bound from the request / message by an annotation
+  param_annotations:
+    RequestParam: http_request
+    PathVariable: http_request
+    RequestBody: http_request
+    RequestHeader: http_request
+    CookieValue: http_request
+    ModelAttribute: http_request
+    RequestPart: http_request
+    MatrixVariable: http_request
+    InputArgument: graphql_input
+    Argument: graphql_input
+    Arguments: graphql_input
+    Payload: message
+    Header: message
+    Headers: message
+  # Handler parameters of these types are framework objects, not user input
+  framework_param_types: [HttpServletRequest, HttpServletResponse, ServerHttpRequest, ServerHttpResponse,
+                          HttpSession, Principal, Authentication, Model, ModelMap, BindingResult, Errors,
+                          Pageable, Sort, Locale, UriComponentsBuilder, WebRequest, ServerWebExchange,
+                          RedirectAttributes, SessionStatus, DataFetchingEnvironment, Acknowledgment]
+  # Calls that return untrusted data
+  invocations:
+    - kind: http_request
+      receivers: [HttpServletRequest, ServletRequest, HttpServletRequestWrapper]
+      members: [getParameter, getParameterValues, getParameterMap, getParameterNames, getHeader, getHeaders,
+                getHeaderNames, getCookies, getQueryString, getRequestURI, getRequestURL, getPathInfo,
+                getInputStream, getReader, getPart, getParts, getRemoteUser]
+    - kind: http_request
+      receivers: [ServerHttpRequest]
+      members: [getQueryParams, getHeaders, getCookies, getURI, getPath, getBody]
+    - kind: http_request
+      receivers: [MultipartFile, Part, FilePart]
+      members: [getOriginalFilename, getSubmittedFileName, getName, getBytes, getInputStream, getContentType,
+                filename, content]
+    - kind: http_request
+      receivers: [Cookie]
+      members: [getValue]
+    - kind: environment
+      receivers: [System]
+      members: [getenv, getProperty]
+
+# Calls whose result is no longer attacker-controlled for the given categories ("all" = every category).
+sanitizers:
+  - members: [parseInt, parseLong, parseShort, parseByte, parseDouble, parseFloat, parseBoolean]
+    categories: [all]
+  - receivers: [Integer, Long, Short, Byte, Double, Float, Boolean, BigDecimal, BigInteger]
+    members: [valueOf]
+    categories: [all]
+  - receivers: [UUID, LocalDate, LocalDateTime, LocalTime, Instant, OffsetDateTime, ZonedDateTime, Duration]
+    members: [fromString, parse, of]
+    categories: [all]
+  - members: [htmlEscape, escapeHtml, escapeHtml4, escapeXml, forHtml, forHtmlContent, forHtmlAttribute,
+              forXml, forXmlAttribute, encodeForHTML, encodeForHTMLAttribute, encodeForXML, sanitize]
+    categories: [xss, header_injection]
+  - members: [forJavaScript, escapeEcmaScript, encodeForJavaScript]
+    categories: [xss]
+  - members: [encodeForSQL, escapeSql, quoteIdentifier, enquoteLiteral, enquoteIdentifier]
+    categories: [sql_injection]
+  - members: [encodeForLDAP, encodeForDN, escapeLdapSearchFilter, filterEncode, nameEncode]
+    categories: [ldap_injection]
+  - members: [encodeForXPath]
+    categories: [xpath_injection]
+  - members: [getName, getFileName, getBaseName, getFilename, cleanPath]
+    receivers: [FilenameUtils, StringUtils, Path, File]
+    categories: [path_traversal]
+  - members: [replaceAll, replace, strip, escapeJava]
+    receivers: [String, StringEscapeUtils]
+    categories: [log_injection]

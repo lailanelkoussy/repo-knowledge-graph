@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.acme.library.mapper.BookMapper">
+    <sql id="selectBook">
+        select B.id, B.title, A.name author_name
+        from books B
+        left join authors A on A.id = B.author_id
+    </sql>
+
+    <select id="findById" resultType="com.acme.library.domain.Book">
+        <include refid="selectBook"/>
+        where B.id = #{id}
+    </select>
+
+    <insert id="insert">
+        insert into books (id, title, author_id) values (#{book.id}, #{book.title}, #{book.authorId})
+    </insert>
+
+    <delete id="unknownStatement">
+        delete from books where id = #{id}
+    </delete>
+</mapper>

@@ -1,0 +1,26 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The command or code you ran, what you expected and what happened instead (include the error output).
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: A public repository, or a small set of files, on which the problem appears.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `pip show repo-knowledge-graph`, or the commit you installed from.
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Python version, OS, MCP client, index type / backend if relevant.

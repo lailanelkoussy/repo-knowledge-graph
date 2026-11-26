@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: shop
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shop
+    username: shop
+    password: s3cr3t-dev-pass
+app:
+  payment:
+    timeout-ms: 2000
+    base-url: http://payments.local
+  kafka:
+    payments-topic: payments
+  cleanup:
+    cron: "0 0 3 * * *"
+  admin:
+    api-key: dev-api-key-123
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+app:
+  payment:
+    timeout-ms: 10

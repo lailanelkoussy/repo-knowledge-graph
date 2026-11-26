@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Changed
+
+- The distribution is named `repo-kg` (`pip install repo-kg` once released), since `repo-knowledge-graph` is taken on
+  PyPI. The import name (`repo_knowledge_graph`) and the `repo-kg` command are unchanged.
+- `examples/mcp_client_demo.py` is now a short walk-through of the main tools instead of a scripted test
+  of every tool.
+
 ### Removed
 
 - The legacy javalang Java parser and the `JAVA_PARSER` setting. Java is always parsed with tree-sitter

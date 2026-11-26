@@ -3,7 +3,7 @@ requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "repo-knowledge-graph"
+name = "repo-kg"
 dynamic = ["version"]
 description = "Knowledge graph of a code repository (files, chunks, entities, imports, git history, Java / Spring Boot framework knowledge) served over MCP."
 readme = "README.md"
@@ -57,7 +57,7 @@ cpp = ["libclang>=18"]
 weaviate = ["weaviate-client>=4.10"]
 observability = ["langfuse>=3.0"]
 dev = ["pytest>=8", "pytest-asyncio>=0.24", "pytest-timeout>=2.3", "ruff>=0.6", "mypy>=1.10"]
-all = ["repo-knowledge-graph[st,cpp,weaviate,observability]"]
+all = ["repo-kg[st,cpp,weaviate,observability]"]
 
 [project.urls]
 Homepage = "https://github.com/lailanelkoussy/repo-knowledge-graph"

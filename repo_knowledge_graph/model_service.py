@@ -184,7 +184,7 @@ class SentenceTransformersModelService(ModelServiceInterface):
             from sentence_transformers import SentenceTransformer
         except ImportError as e:
             raise ImportError("sentence-transformers is required for embedder_type='sentence-transformers' "
-                              "(pip install 'repo-knowledge-graph[st]')") from e
+                              "(pip install 'repo-kg[st]')") from e
         if device is None:
             try:
                 import torch

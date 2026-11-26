@@ -744,7 +744,7 @@ docker run --rm -p 4000:4000 -v "$PWD/../my-project:/repo:ro" -e REPO_PATH=/repo
 
 | Script | What it shows |
 |--------|---------------|
-| `mcp_client_demo.py` | Scripted walk-through of every tool, the way an LLM would use them |
+| `mcp_client_demo.py` | Walk-through of the main tools chained the way an agent would use them (search, definition and usages, endpoint trace, findings) |
 | `mcp_error_handling_demo.py` | Error responses for invalid inputs |
 | `smolagent_remote.py`, `smolagent_local.py` | A [smolagents](https://github.com/huggingface/smolagents) agent answering questions with the server's tools (needs an LLM endpoint) |
 | `vllm_build_graph.py` | Building a graph with embeddings served by vLLM |

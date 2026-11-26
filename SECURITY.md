@@ -6,8 +6,7 @@ Please do not open a public issue for a security problem in repo-knowledge-graph
 through GitHub: **Security → Report a vulnerability** on the repository page
 (<https://github.com/lailanelkoussy/repo-knowledge-graph/security/advisories/new>).
 
-Include the version or commit, how to reproduce the problem and its impact. We aim to acknowledge reports within
-a week and will keep you informed while a fix is prepared.
+Include the version or commit, how to reproduce the problem and its impact.
 
 Examples of what we consider in scope:
 

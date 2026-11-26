@@ -6,6 +6,11 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Removed
+
+- The legacy javalang Java parser and the `JAVA_PARSER` setting. Java is always parsed with tree-sitter
+  (Java 8 to 21); the `javalang` dependency is gone.
+
 ## [0.3.0] - 2026-11-26
 
 First public release.

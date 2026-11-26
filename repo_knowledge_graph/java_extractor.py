@@ -2,10 +2,10 @@
 Java entity extraction with tree-sitter-java (Java 8 to 21: records, sealed types, text blocks,
 switch expressions, pattern matching...).
 
-Output contract (shared with the other extractors, see EntityExtractor.BaseASTEntityExtractor):
+Output contract (shared with the other extractors, see entity_extractor.BaseASTEntityExtractor):
 `extract_entities(code) -> (declared_entities, called_entities)` and `get_imports()`.
 
-Naming (unchanged from the javalang extractor):
+Naming:
     top-level type   com.acme.OrderService
     nested type      com.acme.OrderService.Status
     member           com.acme.OrderService::find

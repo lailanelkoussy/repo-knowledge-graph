@@ -202,20 +202,6 @@ def test_helpers():
     assert javadoc_summary('/**\n * Returns the order.\n * More.\n * @param id id\n */') == 'Returns the order.'
 
 
-def test_javalang_fallback(monkeypatch):
-    from repo_knowledge_graph.settings import get_settings
-    monkeypatch.setenv('JAVA_PARSER', 'javalang')
-    get_settings.cache_clear()
-    try:
-        extractor = JavaEntityExtractor()
-        assert type(extractor).__name__ == 'JavalangEntityExtractor'
-        declared, _ = extractor.extract_entities('package a; class B { void f() {} }')
-        assert any(e['name'] == 'a.B' for e in declared)
-    finally:
-        monkeypatch.delenv('JAVA_PARSER')
-        get_settings.cache_clear()
-
-
 def test_same_named_methods_of_different_classes_are_not_merged():
     registry = EntityRegistry()
     first = registry.register_declared({'name': 'com.a.OrderService::find', 'type': 'method',

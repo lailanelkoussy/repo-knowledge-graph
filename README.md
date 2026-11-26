@@ -701,7 +701,6 @@ over environment variables. `.env.example` lists them all.
 | `EXTRACT_ENTITIES`, `DESCRIBE_NODES`, `GIT_HISTORY`, `MAX_COMMITS`, `INDEX_NODES` | `true`, `false`, `false`, `200`, `true` | Construction |
 | `MAX_FILE_SIZE` | `1000000` | Larger files are skipped (bytes) |
 | `ENRICHERS`, `MASK_CONFIG_VALUES`, `MAX_CALL_EDGES` | `auto`, `true`, `0` | Framework enrichment (same as `--enrichers`...) |
-| `JAVA_PARSER` | `tree-sitter` | Java parser: `tree-sitter` (Java 8-21) or `javalang` (legacy, Java 8 only, kept for one release) |
 | `CODE_CHUNK_SIZE`, `CODE_CHUNK_OVERLAP` | `2000`, `0` | Chunking (characters) |
 | `INDEX_TYPE`, `INDEX_BACKEND`, `LANCEDB_PATH` | `keyword-only`, `lancedb`, `./local_code_index_db` | Search index |
 | `WEAVIATE_HOST`, `WEAVIATE_PORT`, `WEAVIATE_GRPC_PORT`, `ALPHA_SEARCH_VALUE` | `localhost`, `8080`, `50051`, `0.8` | Weaviate backend |
@@ -886,7 +885,7 @@ security assessments and teaching. It never runs the analysed code and does not 
 Contributions are welcome on any of these:
 
 - **Languages**: Kotlin Spring projects (tree-sitter-kotlin, same attributes as the Java extractor); move C/C++
-  extraction to tree-sitter and drop libclang; remove the legacy `javalang` Java parser.
+  extraction to tree-sitter and drop libclang.
 - **Precision**: measure the precision and recall of `called_by` edges on an annotated multi-language
   repository (today only measured on the Java fixture).
 - **Security analysis**: flow-sensitive def-use for constant branches and overwritten variables (the main

@@ -75,7 +75,6 @@ class Settings:
     github_token: Optional[str] = field(default=None, repr=False)
 
     # --- Java / framework enrichment ---
-    java_parser: str = 'tree-sitter'      # 'tree-sitter' (Java 8-21) or 'javalang' (legacy, Java 8)
     enrichers: str = 'auto'               # 'auto', 'none' or a comma-separated list (see enrichers/)
     mask_config_values: bool = True       # mask secret-looking configuration values
     max_call_edges: int = 0               # cap on 'calls' / 'uses_type' edges, 0 = unlimited
@@ -107,7 +106,6 @@ class Settings:
             weaviate_grpc_port=_int('WEAVIATE_GRPC_PORT', d.weaviate_grpc_port),
             alpha_search_value=_float('ALPHA_SEARCH_VALUE', d.alpha_search_value),
             github_token=_opt_str('GITHUB_TOKEN') or _opt_str('GITHUB_OAUTH_TOKEN'),
-            java_parser=_str('JAVA_PARSER', d.java_parser).lower(),
             enrichers=_str('ENRICHERS', d.enrichers),
             mask_config_values=_bool('MASK_CONFIG_VALUES', d.mask_config_values),
             max_call_edges=_int('MAX_CALL_EDGES', d.max_call_edges),
